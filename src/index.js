@@ -1,10 +1,6 @@
 import './styles.css';
+import createSidebar from './sidebar';
 
-function app() {
-  const el = document.createElement('div');
-  el.id = 'app';
-  el.innerText = 'Hello from the template!';
-  document.body.appendChild(el);
-}
-
-app();
+document.addEventListener('DOMContentLoaded', () => {
+    createSidebar();
+});
