@@ -1,21 +1,31 @@
 export default function createProject() {
     let projects = [];
+    let idCounter = 1;
+
+    class Project {
+        constructor(title) {
+            this.id = idCounter++;
+            this.title = title;
+        }
+    }
 
     // ----- Selectors -----
     const projectsSection = document.querySelector('.projects');
     const addProjectBtn = document.getElementById('add-project-btn');
 
-    // ----- Event Listeners -----
+    // ----- Project Form -----
     function displayProjectForm() {
+        if (projectsSection.querySelector('.form-container')) return;
+
         addProjectBtn.addEventListener('click', () => {
             const projectForm = document.createElement('div');
             projectForm.classList.add('form-container');
             projectForm.innerHTML = `
-                <input type='text' id='project-title'></input>
-                <div class='project-form-buttons'>
+                <div class='form-input'>
+                    <input type='text' id='project-title' placeholder='Project Title...'></input>
                     <button type="submit" class="save-btn">Save</button>
-                    <button type="button" class="cancel-btn">Delete</button>
                 </div>
+                <button type="button" class="cancel-btn">Cancel</button>
             `
             // Project Form Buttons & Input
             const saveProject = projectForm.querySelector('.save-btn');
@@ -26,8 +36,10 @@ export default function createProject() {
                 const title = titleInput.value.trim();
                 if (!title) return;
 
-                projects.push({title});
+                const newProject = new Project(title);
+                projects.push(newProject);
                 projectForm.remove();
+                renderProject();
             });
             cancelProject.addEventListener('click', () => {
                 projectForm.remove();
@@ -36,4 +48,35 @@ export default function createProject() {
             projectsSection.append(projectForm);
         });
     }
+
+    // ----- Render Project Card -----
+    function renderProject() {
+        const existingCards = projectsSection.querySelectorAll('.project-container');
+        existingCards.forEach(card => card.remove());
+
+        projects.forEach(project => {
+            const projectCard = document.createElement('div');
+            projectCard.classList.add('project-container');
+            projectCard.innerHTML = `
+                <div class='title-section'>
+                    <h2>${project.title}</h2>
+                    <button class="delete-btn" data-id="${project.id}">Delete Project</button>
+                </div>
+                <label for="add-task">
+                    <input type='text' placeholder='Add Task' id='add-task'>
+                    <input type='submit' class='submit-btn'>
+                </label>
+            `;
+            const deleteProjectBtn = projectCard.querySelector('.delete-btn');
+            deleteProjectBtn.addEventListener('click', () => {
+                projects = projects.filter(p => p.id !== project.id);
+                renderProject();
+            });
+
+            projectsSection.append(projectCard);
+        });
+    }
+   
+    displayProjectForm();
+    renderProject();
 }
