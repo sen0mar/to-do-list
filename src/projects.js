@@ -9,11 +9,11 @@ export default function createProject() {
         }
     }
 
-    // ----- Selectors -----
+    // ---------- Selectors ----------
     const projectsSection = document.querySelector('.projects');
     const addProjectBtn = document.getElementById('add-project-btn');
 
-    // ----- Project Form -----
+    // ---------- Project Form ----------
     function displayProjectForm() {
         if (projectsSection.querySelector('.form-container')) return;
 
@@ -49,7 +49,7 @@ export default function createProject() {
         });
     }
 
-    // ----- Render Project Card -----
+    // ---------- Render Project Card ----------
     function renderProject() {
         const existingCards = projectsSection.querySelectorAll('.project-container');
         existingCards.forEach(card => card.remove());
