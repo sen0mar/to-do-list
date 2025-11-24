@@ -1,4 +1,4 @@
-export default function createProject() {
+export default function createProject(taskManager) {
     let projects = [];
     let idCounter = 1;
 
@@ -59,14 +59,15 @@ export default function createProject() {
         projects.forEach(project => {
             const projectCard = document.createElement('div');
             projectCard.classList.add('project-container');
+            projectCard.setAttribute('data-project-id', project.id);
             projectCard.innerHTML = `
                 <div class='title-section'>
                     <h2>${project.title}</h2>
                     <button class="delete-btn" data-id="${project.id}">Delete Project</button>
                 </div>
-                <label for="add-task">
-                    <input type='text' placeholder='Add Task' id='add-task-${project.id}' class='add-task-input'>
-                    <button class='add-task-btn' data-project-id='${project.id}'>+</button>
+                <label for="add-task-${project.id}">
+                    <input type='text' placeholder='Add Task' id="add-task-${project.id}" class='add-task-input'>
+                    <button class='add-task-btn' data-project-id="${project.id}">+</button>
                 </label>
                 <div class='tasks-list'></div>
             `;
@@ -76,10 +77,13 @@ export default function createProject() {
                 renderProject();
             });
 
-
-
             projectsSection.append(projectCard);
         });
+
+        // Re-render all tasks after projects are rendered
+        if (taskManager && taskManager.renderAllTasks) {
+            taskManager.renderAllTasks();
+        }
     }
    
     displayProjectForm();

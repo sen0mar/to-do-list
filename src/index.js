@@ -5,7 +5,10 @@ import createTask from './tasks';
 
 document.addEventListener('DOMContentLoaded', () => {
     createSidebar();
-    createProject();
-    createTask();
+    
+    // Create tasks first and get the task manager
+    const taskManager = createTask();
+    
+    // Pass the task manager to projects
+    createProject(taskManager);
 });
-
