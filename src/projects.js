@@ -15,9 +15,11 @@ export default function createProject() {
 
     // ---------- Project Form ----------
     function displayProjectForm() {
-        if (projectsSection.querySelector('.form-container')) return;
 
         addProjectBtn.addEventListener('click', () => {
+            // Check if form already exists
+            if (projectsSection.querySelector('.form-container')) return;
+            
             const projectForm = document.createElement('div');
             projectForm.classList.add('form-container');
             projectForm.innerHTML = `
@@ -63,15 +65,18 @@ export default function createProject() {
                     <button class="delete-btn" data-id="${project.id}">Delete Project</button>
                 </div>
                 <label for="add-task">
-                    <input type='text' placeholder='Add Task' id='add-task'>
-                    <input type='submit' class='submit-btn'>
+                    <input type='text' placeholder='Add Task' id='add-task-${project.id}' class='add-task-input'>
+                    <button class='add-task-btn' data-project-id='${project.id}'>+</button>
                 </label>
+                <div class='tasks-list'></div>
             `;
             const deleteProjectBtn = projectCard.querySelector('.delete-btn');
             deleteProjectBtn.addEventListener('click', () => {
                 projects = projects.filter(p => p.id !== project.id);
                 renderProject();
             });
+
+
 
             projectsSection.append(projectCard);
         });
