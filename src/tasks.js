@@ -3,54 +3,51 @@ export default function createTask() {
     let taskId = 1;
 
     class Task {
-        constructor(title, description, dueDate, priority, projectId) {
+        constructor(title, description, dueDate, priority, projectId, completed = false) {
             this.id = taskId++;
             this.title = title;
             this.description = description;
             this.dueDate = dueDate;
             this.priority = priority;
             this.projectId = projectId;
+            this.completed = completed;
         }
     }
 
-    // ---------- Selectors ----------
-    const projectsSection = document.querySelector('.projects');
+    function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(tasksList));
+    }
 
-    // ---------- Task Form ----------
-    function displayTaskForm(projectId, taskTitle) {
-        // Check if form already exists
-        const existingForm = document.querySelector('.tasks-form-container');
-        if (existingForm) return;
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('tasks');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            tasksList = parsed.map(t => {
+                taskId = Math.max(taskId, t.id + 1);
+                return new Task(t.title, t.description, t.dueDate, t.priority, t.projectId, t.completed || false);
+            });
+            renderAllTasks();
+        }
+    }
+
+    function displayTaskForm(projectId, taskTitle = '') {
+        if (document.querySelector('.tasks-form-container')) return;
 
         const projectCard = document.querySelector(`[data-project-id="${projectId}"]`);
         if (!projectCard) return;
-        
-        // Create Task Form
-        const taskForm = document.createElement('div');
-        taskForm.classList.add('tasks-form-container');
-        taskForm.innerHTML = `
-            <h3>New Task</h3>
+
+        const form = document.createElement('div');
+        form.className = 'tasks-form-container';
+        form.innerHTML = `
             <div class='task-form-inputs'>
-                <label>
-                    Title:
-                    <input type='text' id='task-title' value='${taskTitle}'>
-                </label>
-                <label>
-                    Description:
-                    <textarea id='task-description' placeholder='Task description...'></textarea>
-                </label>
-                <label>
-                    Due Date:
-                    <input type='date' id='task-date'>
-                </label>
-                <label>
-                    Priority:
-                    <select id='task-priority'>
-                        <option value='low'>Low</option>
-                        <option value='normal' selected>Normal</option>
-                        <option value='high'>High</option>
-                    </select>
-                </label>
+                <input type='text' id='task-title' value='${taskTitle}' placeholder='Title'>
+                <textarea id='task-description' placeholder='Description'></textarea>
+                <input type='date' id='task-date'>
+                <select id='task-priority'>
+                    <option value='low'>Low</option>
+                    <option value='normal' selected>Normal</option>
+                    <option value='high'>High</option>
+                </select>
             </div>
             <div class='task-form-buttons'>
                 <button class='save-task-btn'>Save</button>
@@ -58,87 +55,83 @@ export default function createTask() {
             </div>
         `;
 
-        // Form Event Listeners
-        const saveBtn = taskForm.querySelector('.save-task-btn');
-        const cancelBtn = taskForm.querySelector('.cancel-task-btn');
-
-        saveBtn.addEventListener('click', () => {
-            const title = taskForm.querySelector('#task-title').value.trim();
-            const description = taskForm.querySelector('#task-description').value.trim();
-            const dueDate = taskForm.querySelector('#task-date').value;
-            const priority = taskForm.querySelector('#task-priority').value;
-
+        form.querySelector('.save-task-btn').onclick = () => {
+            const title = form.querySelector('#task-title').value.trim();
             if (!title) return;
 
-            const newTask = new Task(title, description, dueDate, priority, projectId);
-            tasksList.push(newTask);
-
-            taskForm.remove();
+            const task = new Task(
+                title,
+                form.querySelector('#task-description').value.trim(),
+                form.querySelector('#task-date').value,
+                form.querySelector('#task-priority').value,
+                projectId
+            );
+            tasksList.push(task);
+            saveTasks();
+            form.remove();
             renderTasksForProject(projectId);
-        });
+        };
 
-        cancelBtn.addEventListener('click', () => {
-            taskForm.remove();
-        });
-
-        projectCard.appendChild(taskForm);
+        form.querySelector('.cancel-task-btn').onclick = () => form.remove();
+        projectCard.appendChild(form);
     }
-    
-    
-    // ---------- Render Tasks for a Project ----------
+
     function renderTasksForProject(projectId) {
-        const projectCard = document.querySelector(`[data-project-id="${projectId}"]`);
-        if (!projectCard) return;
+        const card = document.querySelector(`[data-project-id="${projectId}"]`);
+        if (!card) return;
+        const container = card.querySelector('.tasks-list');
+        if (!container) return;
 
-        const tasksContainer = projectCard.querySelector('.tasks-list');
-        if (!tasksContainer) return;
+        container.innerHTML = '';
+        tasksList
+            .filter(t => t.projectId === projectId)
+            .forEach(task => {
+                const el = document.createElement('div');
+                el.className = `task-item ${task.completed ? 'completed' : ''}`;
 
-        // Clear existing tasks in the DOM
-        tasksContainer.innerHTML = '';
+                el.innerHTML = `
+                    <label class="checkbox-container">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''}>
+                        <span class="checkmark"></span>
+                    </label>
+                    <div class="task-details">
+                        <h4>${task.title}</h4>
+                        <p>${task.description || 'No description'}</p>
+                        <p>Due: ${task.dueDate || 'No date'}</p>
+                        <p>Priority: <span class="priority-${task.priority}">${task.priority}</span></p>
+                    </div>
+                `;
 
-        // Get tasks for this specific project
-        const projectTasks = tasksList.filter(task => task.projectId === projectId);
+                el.querySelector('input[type="checkbox"]').onchange = (e) => {
+                    task.completed = e.target.checked;
+                    saveTasks();
+                    renderTasksForProject(projectId);
+                };
 
-        // Render each task
-        projectTasks.forEach(task => {
-            const taskElement = document.createElement('div');
-            taskElement.classList.add('task-item');
-            taskElement.innerHTML = `
-                <h4>${task.title}</h4>
-                <p>${task.description}</p>
-                <p>Due: ${task.dueDate || 'No date'}</p>
-                <p>Priority: ${task.priority}</p>
-            `;
-            tasksContainer.appendChild(taskElement);
-        });
+                container.appendChild(el);
+            });
     }
 
-    // ---------- Render All Tasks ----------
     function renderAllTasks() {
-        const allProjects = document.querySelectorAll('.project-container');
-        allProjects.forEach(project => {
-            const projectId = parseInt(project.getAttribute('data-project-id'));
-            renderTasksForProject(projectId);
+        document.querySelectorAll('.project-container').forEach(proj => {
+            const id = Number(proj.dataset.projectId);
+            renderTasksForProject(id);
         });
     }
 
-    // ---------- Handle Add Task Button Click ----------
-    projectsSection.addEventListener('click', (e) => {
+    document.querySelector('.projects').addEventListener('click', e => {
         if (e.target.classList.contains('add-task-btn')) {
-            const projectId = parseInt(e.target.getAttribute('data-project-id'));
-            const taskInput = document.getElementById(`add-task-${projectId}`);
-            const taskTitle = taskInput.value.trim();
-            
-            if (!taskTitle) return;
-
-            // Clear input and show form
-            taskInput.value = '';
-            displayTaskForm(projectId, taskTitle);
+            const projectId = Number(e.target.dataset.projectId);
+            const input = document.getElementById(`add-task-${projectId}`);
+            const title = input.value.trim();
+            if (!title) return;
+            input.value = '';
+            displayTaskForm(projectId, title);
         }
     });
 
-    // Export render function
     return {
-        renderAllTasks
+        renderAllTasks,
+        loadFromLocalStorage
     };
 }

@@ -9,83 +9,97 @@ export default function createProject(taskManager) {
         }
     }
 
-    // ---------- Selectors ----------
+    // Save & Load Projects
+    function saveProjects() {
+        localStorage.setItem('projects', JSON.stringify(projects));
+    }
+
+    function loadProjects() {
+        const saved = localStorage.getItem('projects');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            projects = parsed.map(p => {
+                const proj = new Project(p.title);
+                proj.id = p.id;
+                return proj;
+            });
+            if (projects.length > 0) {
+                idCounter = Math.max(...projects.map(p => p.id)) + 1;
+            }
+            renderProject(); // Re-render with saved projects
+        }
+    }
+
     const projectsSection = document.querySelector('.projects');
     const addProjectBtn = document.getElementById('add-project-btn');
 
-    // ---------- Project Form ----------
     function displayProjectForm() {
-
         addProjectBtn.addEventListener('click', () => {
-            // Check if form already exists
             if (projectsSection.querySelector('.form-container')) return;
-            
+
             const projectForm = document.createElement('div');
             projectForm.classList.add('form-container');
             projectForm.innerHTML = `
                 <div class='form-input'>
-                    <input type='text' id='project-title' placeholder='Project Title...'></input>
-                    <button type="submit" class="save-btn">Save</button>
+                    <input type='text' id='project-title' placeholder='Project Title...'>
+                    <button class="save-btn">Save</button>
                 </div>
-                <button type="button" class="cancel-btn">Cancel</button>
-            `
-            // Project Form Buttons & Input
-            const saveProject = projectForm.querySelector('.save-btn');
-            const cancelProject = projectForm.querySelector('.cancel-btn');
-            const titleInput = projectForm.querySelector('#project-title');
+                <button class="cancel-btn">Cancel</button>
+            `;
 
-            saveProject.addEventListener('click', () => {
-                const title = titleInput.value.trim();
+            const saveBtn = projectForm.querySelector('.save-btn');
+            const cancelBtn = projectForm.querySelector('.cancel-btn');
+            const input = projectForm.querySelector('#project-title');
+
+            saveBtn.addEventListener('click', () => {
+                const title = input.value.trim();
                 if (!title) return;
-
-                const newProject = new Project(title);
-                projects.push(newProject);
+                projects.push(new Project(title));
+                saveProjects();
                 projectForm.remove();
                 renderProject();
             });
-            cancelProject.addEventListener('click', () => {
-                projectForm.remove();
-            });
 
-            projectsSection.append(projectForm);
+            cancelBtn.addEventListener('click', () => projectForm.remove());
+
+            projectsSection.appendChild(projectForm);
         });
     }
 
-    // ---------- Render Project Card ----------
     function renderProject() {
-        const existingCards = projectsSection.querySelectorAll('.project-container');
-        existingCards.forEach(card => card.remove());
+        document.querySelectorAll('.project-container').forEach(c => c.remove());
 
         projects.forEach(project => {
-            const projectCard = document.createElement('div');
-            projectCard.classList.add('project-container');
-            projectCard.setAttribute('data-project-id', project.id);
-            projectCard.innerHTML = `
+            const card = document.createElement('div');
+            card.classList.add('project-container');
+            card.dataset.projectId = project.id;
+            card.innerHTML = `
                 <div class='title-section'>
                     <h2>${project.title}</h2>
                     <button class="delete-btn" data-id="${project.id}">Delete Project</button>
                 </div>
-                <label for="add-task-${project.id}">
+                <label>
                     <input type='text' placeholder='Add Task' id="add-task-${project.id}" class='add-task-input'>
-                    <button class='add-task-btn' data-project-id="${project.id}">+</button>
+                    <button class='add-task-btn' data-project-id="${project.id}">Add</button>
                 </label>
                 <div class='tasks-list'></div>
             `;
-            const deleteProjectBtn = projectCard.querySelector('.delete-btn');
-            deleteProjectBtn.addEventListener('click', () => {
+
+            card.querySelector('.delete-btn').addEventListener('click', () => {
                 projects = projects.filter(p => p.id !== project.id);
+                saveProjects();
                 renderProject();
+                taskManager.renderAllTasks?.();
             });
 
-            projectsSection.append(projectCard);
+            projectsSection.appendChild(card);
         });
 
-        // Re-render all tasks after projects are rendered
-        if (taskManager && taskManager.renderAllTasks) {
-            taskManager.renderAllTasks();
-        }
+        taskManager.renderAllTasks?.();
     }
-   
+
+    // Load, then render
+    loadProjects();
     displayProjectForm();
-    renderProject();
+    renderProject(); // Initial render (in case no saved data)
 }

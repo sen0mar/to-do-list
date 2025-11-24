@@ -1,4 +1,4 @@
-/* ---------- GENERAL SETUP ---------- */
+/* -------------------- GENERAL SETUP -------------------- */
 * {
     margin: 0;
     padding: 0;
@@ -10,7 +10,7 @@ body {
     background-color: #f5f5dc;
 }
 
-/* ---------- SIDEBAR ---------- */
+/* -------------------- SIDEBAR -------------------- */
 .sidebar-container {
     background-color: #aaaa63;
     min-height: 100vh;
@@ -62,7 +62,7 @@ body {
 
 }
 
-/* ---------- MAIN SECTION TITLE ---------- */
+/* -------------------- MAIN SECTION TITLE -------------------- */
 .main-page-container {
     padding: 2rem;
 }
@@ -78,8 +78,8 @@ body {
     justify-self: center;
     align-self: center;
 }
-/* ---------- MAIN SECTION ---------- */
-/* ----- Project Form ----- */
+/* -------------------- MAIN SECTION -------------------- */
+/* ---------- Project Form ---------- */
 .main-page-container {
     position: relative;
 }
@@ -140,7 +140,7 @@ body {
     border-radius: 30px;
 }
 
-/* ----- Project ----- */
+/* --------- Project ---------- */
 .project-container {
     display: flex;
     flex-direction: column;
@@ -198,14 +198,33 @@ body {
     cursor: pointer;
 }
 
-/* ----- Task ----- */
+/* ---------- Task ---------- */
+/* -- Task Form -- */
 .tasks-form-container {
     display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
 
     padding: 1rem;
     width: 96%;
     border-radius: 15px;
     background-color: aqua;
+}
+.tasks-form-container label {
+    display: flex; 
+    flex-direction: column;
+}
+
+/* -- Task Card -- */
+.task-item {
+    display: flex;
+    gap: 4rem;
+
+    padding: 1rem; 
+    background-color: aqua;
+    border-radius: 15px;
+    margin-bottom: 1rem;
 }
 
 
